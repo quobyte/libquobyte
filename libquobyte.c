@@ -58,7 +58,7 @@ int quobyte_create_adapter(const char* registry_addresses) {
 
   char* test_dir = getenv("QUOBYTE_TESTDIR");
   if (test_dir == NULL) {
-    test_dir = getenv("TMPDIR");
+    test_dir = getenv("TMPDIR") != NULL ? getenv("TMPDIR") : P_tmpdir;
   }
   if (test_dir == NULL) {
     fprintf(stderr, "Cannot determine test directory. Set environment variable "
