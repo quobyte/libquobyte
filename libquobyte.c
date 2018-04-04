@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <libaio.h>
+#include <linux/falloc.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -73,11 +74,18 @@ int quobyte_create_adapter(const char* registry_addresses) {
   strcat(test_directory, kQuobyteTestPrefix);
   strcat(test_directory, registry_addresses);
 
+  static int initialized = 0;
   if (mkdir(test_directory, kTestDirectoryMode) == -1 && errno != EEXIST) {
     free(test_directory);
     return -1;
   }
-  printf("Set up test directory %s\n", test_directory);
+  if (initialized == 0) {
+    printf(errno == EEXIST ?
+        "Using existing test directory %s\n" :
+        "Set up test directory %s\n",
+        test_directory);
+    initialized = 1;
+  }
   return 0;
 }
 
