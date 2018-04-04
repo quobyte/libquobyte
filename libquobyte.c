@@ -73,7 +73,7 @@ int quobyte_create_adapter(const char* registry_addresses) {
   strcat(test_directory, kQuobyteTestPrefix);
   strcat(test_directory, registry_addresses);
 
-  if (mkdir(test_directory, kTestDirectoryMode) == -1) {
+  if (mkdir(test_directory, kTestDirectoryMode) == -1 && errno != EEXIST) {
     free(test_directory);
     return -1;
   }
