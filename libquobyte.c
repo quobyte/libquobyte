@@ -323,7 +323,15 @@ int quobyte_read(struct quobyte_fh* file_handle, char* data, size_t offset,
     errno = EBADF;
     return -1;
   }
-  return pread(file_handle->fd, data, length, offset);
+  int page_size = sysconf(_SC_PAGESIZE);
+  char* aligned_buffer;
+  if (posix_memalign((void**)&aligned_buffer, page_size, length) != 0) {
+    return -1;
+  }
+  int bytes_read = pread(file_handle->fd, aligned_buffer, length, offset);
+  memcpy(data, aligned_buffer, length);
+  free(aligned_buffer);
+  return bytes_read;
 }
 
 int quobyte_write(struct quobyte_fh* file_handle, const char* data,
@@ -332,10 +340,17 @@ int quobyte_write(struct quobyte_fh* file_handle, const char* data,
     errno = EBADF;
     return -1;
   }
-  int written = pwrite(file_handle->fd, data, length, offset);
+  int page_size = sysconf(_SC_PAGESIZE);
+  char* aligned_buffer;
+  if (posix_memalign((void**)&aligned_buffer, page_size, length) != 0) {
+    return -1;
+  }
+  memcpy(aligned_buffer, data, length);
+  int written = pwrite(file_handle->fd, aligned_buffer, length, offset);
   if (written > 0 && sync_write) {
     fsync(file_handle->fd);
   }
+  free(aligned_buffer);
   return written;
 }
 
